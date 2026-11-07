@@ -1,0 +1,50 @@
+﻿<Window x:Class="JK2MVCrashHelper.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:JK2MVCrashHelper"
+        mc:Ignorable="d"
+        Title="JK2MVCrashHelper" Height="600" Width="800">
+    <Grid>
+        <StackPanel>
+            <TextBlock>(overwrite text fields with your own data, they serve as examples)</TextBlock>
+            <Label>Log Stacktrace</Label>
+            <TextBox AcceptsReturn="True" TextWrapping="Wrap" x:Name="stackTraceTxt" Height="100" Text="#0  [0x7fa3d6863098]&#x0a;
+#1  [0x7fa3d686387c]&#x0a;
+#2  [0x7fa3d67d11ba]&#x0a;
+#3  [0x7fa3d67d1715]&#x0a;
+#4  ./eternaljk2mvded(+0x11505d) [0x556becbb005d]&#x0a;
+#5  ./eternaljk2mvded(+0xb765e) [0x556becb5265e]&#x0a;
+#6  ./eternaljk2mvded(+0xb1ea1) [0x556becb4cea1]&#x0a;
+#7  ./eternaljk2mvded(+0xdca9d) [0x556becb77a9d]&#x0a;
+#8  ./eternaljk2mvded(+0x50ee7) [0x556becaebee7]"></TextBox>
+            <Label>Reference live process GDB bt including vmmain (bt)</Label>
+            <TextBox AcceptsReturn="True" TextWrapping="Wrap" x:Name="gdbBtTxt" Height="100" Text="
+                #0  PlayerSnapshotHackValues () at jk2mv/src/mvsdk/code/game/g_snapshots.c:328&#x0a;
+#1  0x00007fffec4361ba in JK2_vmMain () at jk2mv/src/mvsdk/code/game/g_main.c:861&#x0a;
+#2  0x00007fffec436715 in vmMain () at jk2mv/src/mvsdk/code/game/g_main.c:697&#x0a;
+#3  0x000055555566905d in VM_Call () at jk2mv/src/qcommon/vm.cpp:1050&#x0a;
+#4  0x000055555560b65e in SV_SendClientMessages () at jk2mv/src/server/sv_snapshot.cpp:1892&#x0a;
+#5  0x0000555555605ea1 in SV_Frame () at jk2mv/src/server/sv_main.cpp:1893&#x0a;
+#6  0x0000555555630a9d in Com_Frame () at jk2mv/src/qcommon/common.cpp:3327&#x0a;
+#7  0x00005555555a4ee7 in main () at jk2mv/src/sys/sys_main.cpp:418">
+            </TextBox>
+            <Label>Reference live process GDB proc mappings including game (proc info mappings)</Label>
+            <TextBox AcceptsReturn="True" TextWrapping="Wrap" x:Name="gdbProcMapTxt" Height="100" Text="
+                0x7fffeba42000     0x7fffec3c8000   0x986000        0x0  rw-p&#x0a;
+      0x7fffec3c8000     0x7fffec424000    0x5c000        0x0  r--p   jk2mv/build/Linux-x86_64-portable/out/Release/jk2mpgame_amd64.so&#x0a;
+      0x7fffec424000     0x7fffec4fd000    0xd9000    0x5c000  r-xp   jk2mv/build/Linux-x86_64-portable/out/Release/jk2mpgame_amd64.so&#x0a;
+      0x7fffec4fd000     0x7fffec553000    0x56000   0x135000  r--p   jk2mv/build/Linux-x86_64-portable/out/Release/jk2mpgame_amd64.so&#x0a;
+      0x7fffec553000     0x7fffec554000     0x1000   0x18b000  ---p   jk2mv/build/Linux-x86_64-portable/out/Release/jk2mpgame_amd64.so&#x0a;
+      0x7fffec554000     0x7fffec556000     0x2000   0x18b000  r--p   jk2mv/build/Linux-x86_64-portable/out/Release/jk2mpgame_amd64.so&#x0a;
+      0x7fffec556000     0x7fffec58e000    0x38000   0x18d000  rw-p   jk2mv/build/Linux-x86_64-portable/out/Release/jk2mpgame_amd64.so&#x0a;
+      0x7fffec58e000     0x7ffff0000000  0x3a72000        0x0  rw-p &#x0a;
+      0x7ffff0000000     0x7ffff003c000    0x3c000        0x0  rw-p">
+            </TextBox>
+            <Button Click="Button_Click">Do</Button>
+            <Label>Calculated module offset:</Label>
+            <TextBox x:Name="resultTxt" Height="100"></TextBox>
+        </StackPanel>
+    </Grid>
+</Window>

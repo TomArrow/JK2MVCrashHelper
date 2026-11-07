@@ -1,0 +1,149 @@
+name: Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: master
+  pull_request:
+    branches: master
+  release:
+    types: [created]
+
+permissions:
+  contents: write
+
+jobs:
+  linux:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dotnet-version: [ '5.0.x' ]
+        self-contained: [ false, true ]
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+      - name: Install dependencies
+        run: dotnet restore
+      - name: Build
+        run: dotnet build --no-restore
+      - name: Publish (framework-dependent)
+        run: dotnet publish JK2MVCrashHelper/JK2MVCrashHelper.csproj
+          --configuration Release
+          --runtime linux-x64
+          -p:PublishReadyToRun=true -p:PublishSingleFile=true  --self-contained ${{ matrix.self-contained }} -p:IncludeNativeLibrariesForSelfExtract=true
+          --output publish/linux-x64
+      - name: Upload dotnet test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-${{ matrix.dotnet-version }}${{ matrix.self-contained && '-selfcontained' || '' }}
+          path: ./publish/linux-x64/
+        if: ${{ always() }}
+        
+  macos:
+
+    runs-on: macos-15-intel
+    strategy:
+      matrix:
+        dotnet-version: [ '5.0.x' ]
+        self-contained: [ false, true ]
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+      - name: Install dependencies
+        run: dotnet restore
+      - name: Build
+        run: dotnet build --no-restore
+      - name: Publish (framework-dependent)
+        run: dotnet publish JK2MVCrashHelper/JK2MVCrashHelper.csproj
+          --configuration Release
+          --runtime osx-x64
+          -p:PublishReadyToRun=true -p:PublishSingleFile=true  --self-contained ${{ matrix.self-contained }} -p:IncludeNativeLibrariesForSelfExtract=true
+          --output publish/osx-x64
+      - name: Upload dotnet test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: macosx-${{ matrix.dotnet-version }}${{ matrix.self-contained && '-selfcontained' || '' }}
+          path: ./publish/osx-x64/
+        if: ${{ always() }}
+        
+        
+  windows:
+
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        dotnet-version: [ '5.0.x' ]
+        self-contained: [ false, true ]
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+      - name: Install dependencies
+        run: dotnet restore
+      - name: Build
+        run: dotnet build --no-restore
+      - name: Publish (framework-dependent)
+        run: dotnet publish JK2MVCrashHelper/JK2MVCrashHelper.csproj
+          --configuration Release
+          --runtime win-x64
+          -p:PublishReadyToRun=true -p:PublishSingleFile=true  --self-contained ${{ matrix.self-contained }} -p:IncludeNativeLibrariesForSelfExtract=true
+          --output publish/win-x64
+      - name: Upload dotnet test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: win-${{ matrix.dotnet-version }}${{ matrix.self-contained && '-selfcontained' || '' }}
+          path: ./publish/win-x64/
+        if: ${{ always() }}
+
+  create-latest:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    needs: [windows]
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+            path: ./artifacts
+
+      - name: Create binary archives
+        run: |
+            ls -l
+            find ./artifacts -type d -mindepth 1 -maxdepth 1 -exec 7z a -r "{}.zip" "{}/*" \;
+
+      - name: Create latest build
+        uses: TomArrow/GH-Automatic-Releases@v1
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          automatic_release_tag: "latest"
+          prerelease: false
+          title: Latest Build
+          files: |
+            artifacts/*.zip
